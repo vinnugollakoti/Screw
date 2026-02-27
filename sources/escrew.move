@@ -3,8 +3,11 @@ module escrew::simple_escrew {
     use sui::coin::{Self, Coin};
     use sui::balance::Balance;
     use sui::clock::{Self, Clock};
+    use sui::object::{Self, UID};
+    use sui::transfer;
+    use sui::tx_context::{Self, TxContext};
 
-    public struct Escrew<phantom T> has key {
+    public struct Escrew<phantom T> has key, store {
         id: UID,
         buyer: address,
         seller: address,
@@ -15,7 +18,7 @@ module escrew::simple_escrew {
         timeout_ms: u64
     }
 
-    public fun create_escrew<T: store>(
+    public fun create_escrew<T>(
         seller: address,
         coin: Coin<T>,
         clock: &Clock,
@@ -36,10 +39,10 @@ module escrew::simple_escrew {
             timeout_ms
         };
 
-        transfer::share_object(escrew);
+        transfer::public_share_object(escrew);
     }
 
-    public fun release_escrew<T: store>(
+    public fun release_escrew<T>(
         escrew: Escrew<T>,
         ctx: &mut TxContext
     ) {
@@ -55,7 +58,7 @@ module escrew::simple_escrew {
     }
 
 
-    public fun refund<T: store>(
+    public fun refund<T>(
         escrew: Escrew<T>,
         clock : &Clock,
         ctx: &mut TxContext
@@ -74,7 +77,7 @@ module escrew::simple_escrew {
     }
 
     // buyer request cancellation
-    public fun request_cancel<T: store> (
+    public fun request_cancel<T> (
         escrew: &mut Escrew<T>,
         ctx: &mut TxContext
     ) {
@@ -85,7 +88,7 @@ module escrew::simple_escrew {
         escrew.cancel_request = true;
     }
 
-    public fun approve_cancel<T: store> (
+    public fun approve_cancel<T> (
         escrew: &mut Escrew<T>,
         ctx: &mut TxContext
     ) {
